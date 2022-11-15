@@ -1,0 +1,109 @@
+<html>
+    <head>
+        <title> Graph</title>
+    </head>
+    <body>
+        <h1>Hello</h1>
+        <canvas id="myCanvas" style="border:1px solid #000000;"></canvas>
+
+    </body>
+    <script>
+
+        //Function to calculate Mean
+        function calculateMean(data, useY) {
+                const sum = data.reduce((a, b) => a + (useY ? b.y : b), 0);
+                return sum / data.length;
+        }
+
+        const outputX = [];
+        const outputY = [];
+
+        function plotBellCurve(startX, endX) {
+            let maxValue = 0;
+            const output = [];
+            // const outputX = [];
+            // const outputY = [];
+            let i;
+
+            //Generating random points between the given scale
+            const data = new Array(500).fill(0).map((v, i) => (
+                    { 
+                        x: i,
+                        y: Math.random() * (endX - startX)  + startX
+                    }
+            ));
+            
+            //Calculating Mean, variance and standard deviation, steps
+            const mean = calculateMean(data, true);
+            const tmp = data.map(p => Math.pow(p.y - mean, 2));
+            const variance = calculateMean(data.map(p => Math.pow(p.y - mean, 2)));
+            const standardDeviation = Math.sqrt(variance);
+            const step = standardDeviation / 7;
+
+            // calculating y using probability distribution function(pdf)
+            //finding maxValue for y for y-axis scale transformation
+            const pdf = (x) => {
+                const m = standardDeviation * Math.sqrt(2 * Math.PI);
+                const e = Math.exp(-Math.pow(x - mean, 2) / (2 * variance));
+                if (e /m > maxValue){
+                    maxValue = e/m;
+                }
+                return (e / m);
+            };
+ 
+            //Calculating co-ordinates for left half of the bell curve
+            for(i = startX; i <= mean; i += step) {
+                outputX.push(i);
+                outputY.push(pdf(i));
+            }
+
+            //Calculating co-ordinates for right half of the bell curve
+            for(i = mean + step; i <= endX; i += step) {
+                outputX.push(i);
+                outputY.push(pdf(i));
+            }
+
+            //Parameter to transform Y axis
+            const yTransform =  6.5 / maxValue;
+
+            //Transforming Y Axis of the graph and creating Output Array
+            for(i = 0; i< outputX.length; i += 1){
+                addX = (outputX[i]);
+                addY = outputY[i]*yTransform;
+                let temp = [addX, addY];
+                output.push(temp);
+            }
+
+            return output;            
+        };
+
+        //Plotting on canvas
+        var canvas = document.getElementById("myCanvas");
+        var ctx = canvas.getContext("2d");
+        ctx.fillStyle = "#FF0000";
+        ctx.canvas.width = window.innerWidth;
+        ctx.canvas.height = window.innerHeight;
+    
+        const output = plotBellCurve(0.75, 1.25);
+
+        let x;
+        for (x = 0; x < outputX.length; x += 1) {
+            var centerX = outputX[x]*100;
+            var centerY = (outputY[x]*100)*(-1);
+            var radius = 1;
+            ctx.beginPath();
+            ctx.arc(centerX , centerY + 300 , radius, 0, 2 * Math.PI, false);
+            ctx.fillStyle = 'green';
+            ctx.fill();
+            ctx.lineWidth = 2;
+            ctx.strokeStyle = '#003300';
+            ctx.stroke();
+        }
+    </script>
+
+</html>
+
+
+
+
+
